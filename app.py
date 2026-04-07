@@ -43,7 +43,7 @@ db = firestore.client()
 @app.route('/', methods = ['GET'])
 def root():    
     return jsonify({
-        "api":"Charadas",
+        "api":"Charadas ",
         "Version":"1.0",
         "Author":"Guilherme da Costa Silva"
         
