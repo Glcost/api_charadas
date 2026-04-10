@@ -7,12 +7,24 @@ from flask_cors import CORS
 import os 
 from  dotenv import load_dotenv
 import json 
+from flasgger import Swagger
+
 
 load_dotenv()
 
 
-
 app = Flask(__name__)
+
+#VERSÃO do OPEN API
+app.config['SWAGGER'] = {
+    'openapi':'3.0.3'
+}
+
+# chamar o openapi para código
+swagger = Swagger(app, template_file='openapi.yaml')
+
+
+
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY")
 
 CORS(app, origins="*")
@@ -41,7 +53,7 @@ db = firestore.client()
 # Rota de Apresentação
 
 @app.route('/', methods = ['GET'])
-def root():    
+def root():
     return jsonify({
         "api":"Charadas ",
         "Version":"1.0",
@@ -113,20 +125,41 @@ def get_charada_by_id(id):
         return jsonify(item.to_dict()), 200
     
     return jsonify({"ERROR!!!":"Charada não encontrada"}), 404
-    
-    
-    
-    
-    
-    
-    
 
-
-# @app.route('/charadas/random', methods= ['GET'])
-# def get_charada_random():
-#     charada = random.choice(charadas)
-#     return jsonify(charada), 200
-
+    
+@app.route("/charadas/sugestao",methods = ['POST'])
+def sugestao_charadas():
+    
+    dados = request.get_json()
+    if not dados or "pergunta" not in dados or "resposta" not in dados:
+        return jsonify({"Error": "Dados Inválido"}), 400
+    
+    try: 
+        #Busca pelo contador
+        contador_ref = db.collection("contador_sug").document("controle_id")
+        contador_doc = contador_ref.get()
+        ultimo_id = contador_doc.to_dict().get("ultimo_id")
+        
+        #Somar 1 ao ultimo id
+        novo_id = ultimo_id + 1
+        
+        #atualiza o id do contador
+        contador_ref.update({"ultimo_id": novo_id})
+        
+        
+        db.collection("sugestao").add({
+            "id": novo_id,
+            "pergunta": dados["pergunta"],
+            "resposta": dados["resposta"]
+        })
+        
+        return jsonify({"message": "Sugestão enviada com sucesso"}), 201
+    
+    except:
+        return jsonify({"ERROR": "Falha no envio da sugestão"}), 400
+    
+    
+    
 
 
 
