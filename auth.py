@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 from functools import wraps
 from flask import request, jsonify, current_app
 
+# teste de git
 
 # ==========================
 # FUNÇÃO PARA GERAR TOKEN JWT
